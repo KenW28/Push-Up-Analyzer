@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Smart Social Pushup Counter</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Single small CSS file -->
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- No JS frameworks, just one light script, loaded at the end with defer -->
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <h1 class="site-title">Smart Social Pushup Counter</h1>
+      <p class="site-tagline">Lightweight live leaderboards for real pushups.</p>
+    </div>
+  </header>
+
+  <section class="card">
+  <header class="card-header">
+    <div>
+      <h2>Leaderboard</h2>
+      <p class="card-subtitle">Filter by scope and time window</p>
+    </div>
+
+    <div class="controls-row">
+      <label class="control">
+        <span class="control-label">Scope</span>
+        <select id="scope-select" class="control-select">
+          <option value="global">Global</option>
+          <option value="friends">Friends only</option>
+        </select>
+      </label>
+
+      <label class="control">
+        <span class="control-label">Reps Time window</span>
+        <select id="window-select" class="control-select">
+          <option value="minute">1 minute</option>
+          <option value="month">Last month</option>
+          <option value="30s">30 seconds</option>
+        </select>
+      </label>
+    </div>
+  </header>
+
+
+      <div class="table-wrapper">
+        <table class="leaderboard-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>User</th>
+              <th>Total Reps</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboard-body">
+            <!-- Rows will be inserted here by app.js -->
+          </tbody>
+        </table>
+      </div>
+
+      <p class="last-updated" id="last-updated">
+        Last updated: —
+      </p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <small>Smart Social Pushup Counter • Built with HTML, CSS, and vanilla JS.</small>
+  </footer>
+</body>
+</html>
