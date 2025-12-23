@@ -1,56 +1,112 @@
-// In a real version, this will come from your backend via fetch().
-// For now, we simulate an API response to keep it simple and lightweight.
-// Base data that does not depend on filters.
-// In reality this would come from your backend.
-const baseLeaderboard = [
-  { username: "kendrick", baseWeek: 210, isFriend: true },
-  { username: "alex", baseWeek: 180, isFriend: true },
-  { username: "jordan", baseWeek: 145, isFriend: false },
-  { username: "taylor", baseWeek: 120, isFriend: true },
-  { username: "sam", baseWeek: 90, isFriend: false },
-];
+/**
+ * Ask the backend who is currently logged in (based on the session cookie).
+ * If not logged in, redirect to /login.html.
+ */
+function refreshAuthUI() {
+  const label = document.getElementById("auth-label");
+  const logoutBtn = document.getElementById("logout-btn");
+
+  // If the auth UI isn't on this page, don't crash.
+  if (!label || !logoutBtn) return Promise.resolve(false);
+
+  return fetch("/api/auth/me", { headers: { "Accept": "application/json" } })
+    .then((r) => {
+      if (!r.ok) throw new Error("Failed to check auth state");
+      return r.json();
+    })
+    .then((payload) => {
+      if (!payload.loggedIn) {
+        window.location.href = "/login.html";
+        return false;
+      }
+
+      label.textContent = `Logged in as: ${payload.username}`;
+      logoutBtn.style.display = "inline-block";
+      return true;
+    })
+    .catch((err) => {
+      console.error("Auth check failed:", err);
+      if (label) label.textContent = "Auth check failed";
+      return false;
+    });
+}
+
+
+/**
+ * Logs out by asking the backend to destroy the session.
+ * After logout, redirect to login page.
+ */
+function logout() {
+  const logoutBtn = document.getElementById("logout-btn");
+  if (logoutBtn) logoutBtn.disabled = true;
+
+  fetch("/api/auth/logout", { method: "POST" })
+    .then(() => {
+      window.location.href = "/login.html";
+    })
+    .catch((err) => {
+      console.error(err);
+      if (logoutBtn) logoutBtn.disabled = false;
+      alert("Logout failed. Try again.");
+    });
+}
+
+
+
+// This function fetches leaderboard data from the backend API with the given filters.
+/**
+ * Fetch leaderboard rows from the backend API.
+ *
+ * The backend returns a JSON payload like:
+ * {
+ *   "scope": "global",
+ *   "window": "month",
+ *   "rows": [
+ *     { "username": "kendrick", "totalReps": 840 },
+ *     ...
+ *   ]
+ * }
+ *
+ * This function returns ONLY the rows array because the UI renderer
+ * only cares about rows.
+ */
+function getLeaderboardData(scope, windowKey) {
+  // Build the query string safely
+  const url = `/api/leaderboard?scope=${encodeURIComponent(scope)}&window=${encodeURIComponent(windowKey)}`;
+
+  return fetch(url, {
+    method: "GET",
+    headers: {
+      // Not strictly required, but makes intent clear
+      "Accept": "application/json",
+    },
+  })
+    .then((response) => {
+      if (response.status === 401) {
+      window.location.href = "/login.html";
+      throw new Error("Unauthorized");
+  }
+
+      // this is where you'll detect it and show a login message.
+      if (!response.ok) {
+        throw new Error(`Leaderboard API failed: ${response.status} ${response.statusText}`);
+      }
+      return response.json();
+    })
+    .then((payload) => {
+      // Defensive: ensure we always return an array
+      if (!payload || !Array.isArray(payload.rows)) return [];
+      return payload.rows;
+    });
+}
+
 
 // Current filter state
 let currentScope = "global"; // "global" or "friends"
 let currentWindow = "month"; // "month", "minute", "30s"
 
-// This function turns "baseWeek" plus the selected time window into a number of reps.
-// These numbers are just for demo. Later this logic will live in your backend.
-function computeRepsForWindow(baseWeek, windowKey) {
-  switch (windowKey) {
-    case "month":
-      // rough: about 4 weeks in a month
-      return baseWeek * 4;
-    case "minute":
-      // how many you might do in a very intense minute
-      return Math.max(1, Math.round(baseWeek / 200));
-    case "30s":
-      // half of the one minute count, roughly
-      return Math.max(1, Math.round(baseWeek / 400));
-    default:
-      return baseWeek;
-  }
-}
 
-// This function applies the filters and returns data for the table.
-function getLeaderboardData(scope, windowKey) {
-  let filtered = baseLeaderboard;
 
-  // Scope filter: include only "friends" if requested
-  if (scope === "friends") {
-    filtered = filtered.filter((p) => p.isFriend);
-  }
-
-  // Map base data into something with a score for the selected time window
-  const mapped = filtered.map((p) => ({
-    username: p.username,
-    totalReps: computeRepsForWindow(p.baseWeek, windowKey),
-  }));
-
-  // In a real app this would be an async fetch.
-  // We wrap it in a Promise so the calling code looks the same.
-  return Promise.resolve(mapped);
-}
 
 
 function renderLeaderboard(rows) {
@@ -115,11 +171,13 @@ function refreshLeaderboard() {
     });
 }
 
-// Initialization
+// Initialization (runs once after the HTML loads)
 document.addEventListener("DOMContentLoaded", () => {
   const scopeSelect = document.getElementById("scope-select");
   const windowSelect = document.getElementById("window-select");
+  const logoutBtn = document.getElementById("logout-btn");
 
+  // Wire dropdown: Scope
   if (scopeSelect) {
     scopeSelect.value = currentScope;
     scopeSelect.addEventListener("change", () => {
@@ -128,6 +186,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Wire dropdown: Time window
   if (windowSelect) {
     windowSelect.value = currentWindow;
     windowSelect.addEventListener("change", () => {
@@ -136,7 +195,16 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Initial render
-  refreshLeaderboard();
+  // Wire logout button click
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", logout);
+  }
+
+  // Confirm login first. If not logged in, this will redirect to /login.html.
+  // Only load leaderboard after auth is confirmed.
+  refreshAuthUI().then((ok) => {
+    if (ok) refreshLeaderboard();
+  });
 });
+
 

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Login • Smart Social Pushup Counter</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="styles.css" />
+
+  <script defer>
+    // Sends username/password to the backend.
+    // If login succeeds, the backend will set a session cookie.
+    // Then we redirect to the homepage.
+    document.addEventListener("DOMContentLoaded", () => {
+      const form = document.getElementById("login-form");
+      const status = document.getElementById("status");
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        status.textContent = "Logging in...";
+
+        const username = document.getElementById("username").value.trim();
+        const password = document.getElementById("password").value;
+
+        try {
+          const res = await fetch("/api/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password }),
+          });
+
+          if (!res.ok) {
+            const msg = await res.text();
+            status.textContent = msg || "Login failed.";
+            return;
+          }
+
+          window.location.href = "/";
+        } catch (err) {
+          console.error(err);
+          status.textContent = "Network error.";
+        }
+      });
+    });
+  </script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <h1 class="site-title">Login</h1>
+      <p class="site-tagline">Access the leaderboard.</p>
+    </div>
+  </header>
+
+  <main class="main">
+    <section class="card">
+      <header class="card-header">
+        <div>
+          <h2>Sign in</h2>
+          <p class="card-subtitle">Username + password only.</p>
+        </div>
+      </header>
+
+      <form id="login-form" style="margin-top: 1rem; display: grid; gap: 0.75rem;">
+        <label class="control">
+          <span class="control-label">Username</span>
+          <input id="username" class="control-select" autocomplete="username" required />
+        </label>
+
+        <label class="control">
+          <span class="control-label">Password</span>
+          <input id="password" class="control-select" type="password" autocomplete="current-password" required />
+        </label>
+
+        <button class="control-select" type="submit" style="cursor:pointer;">Login</button>
+        <p id="status" class="last-updated">—</p>
+
+        <p class="last-updated">
+          Need an account? <a href="/register.html" style="color:#93c5fd;">Register</a>
+        </p>
+      </form>
+    </section>
+  </main>
+</body>
+</html>

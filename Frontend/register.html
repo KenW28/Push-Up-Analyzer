@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Register • Smart Social Pushup Counter</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="styles.css" />
+
+  <script defer>
+    // Creates an account on the backend.
+    // On success, we send the user to login.
+    document.addEventListener("DOMContentLoaded", () => {
+      const form = document.getElementById("register-form");
+      const status = document.getElementById("status");
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        status.textContent = "Creating account...";
+
+        const username = document.getElementById("username").value.trim();
+        const password = document.getElementById("password").value;
+
+        try {
+          const res = await fetch("/api/auth/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password }),
+          });
+
+          if (!res.ok) {
+            const msg = await res.text();
+            status.textContent = msg || "Registration failed.";
+            return;
+          }
+
+          status.textContent = "Account created. Redirecting to login...";
+          setTimeout(() => (window.location.href = "/login.html"), 700);
+        } catch (err) {
+          console.error(err);
+          status.textContent = "Network error.";
+        }
+      });
+    });
+  </script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <h1 class="site-title">Register</h1>
+      <p class="site-tagline">Create your account.</p>
+    </div>
+  </header>
+
+  <main class="main">
+    <section class="card">
+      <header class="card-header">
+        <div>
+          <h2>New account</h2>
+          <p class="card-subtitle">No email. Use a strong password.</p>
+        </div>
+      </header>
+
+      <form id="register-form" style="margin-top: 1rem; display: grid; gap: 0.75rem;">
+        <label class="control">
+          <span class="control-label">Username (3+ chars)</span>
+          <input id="username" class="control-select" autocomplete="username" required />
+        </label>
+
+        <label class="control">
+          <span class="control-label">Password (8+ chars)</span>
+          <input id="password" class="control-select" type="password" autocomplete="new-password" required />
+        </label>
+
+        <button class="control-select" type="submit" style="cursor:pointer;">Create account</button>
+        <p id="status" class="last-updated">—</p>
+
+        <p class="last-updated">
+          Already have an account? <a href="/login.html" style="color:#93c5fd;">Login</a>
+        </p>
+      </form>
+    </section>
+  </main>
+</body>
+</html>
