@@ -48,9 +48,6 @@ func main() {
 	sessionMgr.Cookie.SameSite = http.SameSiteLaxMode
 	sessionMgr.Cookie.Secure = false // TODO: set true in production (HTTPS)
 
-	// IMPORTANT: must be BEFORE routes so login/register can set cookies
-	r.Use(sessionMgr.LoadAndSave)
-
 	// Timeout puts an upper bound on request handling time.
 	// This prevents a request from hanging forever.
 	r.Use(middleware.Timeout(10 * time.Second))
@@ -69,10 +66,19 @@ func main() {
 	// --- STATIC FRONTEND FILES ---
 	// This serves your HTML/CSS/JS from the ../public folder.
 	// When the browser requests "/", it will load index.html from that folder.
+	// --- STATIC FRONTEND FILES ---
 	publicDir := filepath.Join("..", "Frontend")
 	fileServer := http.FileServer(http.Dir(publicDir))
 
-	// Route everything else (like "/", "/styles.css", "/app.js") to the static file server.
+	// Protect ONLY "/" so unauth users get redirected before index.html loads (no "flash").
+	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		protected := requireLoginRedirect(sessionMgr, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			http.ServeFile(w, r, filepath.Join(publicDir, "index.html"))
+		}))
+		protected.ServeHTTP(w, r)
+	})
+
+	// Everything else (login.html, register.html, css, js, etc.) stays publicly accessible.
 	r.Handle("/*", fileServer)
 
 	// Start the server on port 3000.
@@ -85,4 +91,16 @@ func main() {
 func handleHealth(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write([]byte("ok"))
+}
+
+// requireLoginRedirect redirects to /login.html if the user is not logged in.
+func requireLoginRedirect(session *scs.SessionManager, next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		userID := session.GetInt(r.Context(), "userID")
+		if userID == 0 {
+			http.Redirect(w, r, "/login.html", http.StatusFound) // 302
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
 }
