@@ -11,8 +11,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 )
 
-// store holds users (in-memory for now).
-var store = NewUserStore()
+var store AuthStore
 
 // sessionMgr handles secure session cookies.
 var sessionMgr = scs.New()
@@ -51,6 +50,11 @@ func main() {
 	// Timeout puts an upper bound on request handling time.
 	// This prevents a request from hanging forever.
 	r.Use(middleware.Timeout(10 * time.Second))
+
+	db := openDB()
+	defer db.Close()
+
+	store = NewPostgresAuthStore(db)
 
 	// --- API ROUTES ---
 	// We group all API endpoints under /api

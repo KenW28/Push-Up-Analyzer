@@ -55,8 +55,8 @@ func handleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = store.Create(username, hash)
-	if err == ErrUserExists {
+	_, err = store.Create(r.Context(), username, string(hash))
+	if err == ErrUsernameTaken {
 		http.Error(w, "username already taken", http.StatusConflict)
 		return
 	}
@@ -89,7 +89,7 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 
 	// SAFETY: Avoid leaking whether a username exists.
 	// Always return "invalid credentials" on failure.
-	u, err := store.GetByUsername(username)
+	u, err := store.GetByUsername(r.Context(), username)
 	if err != nil {
 		// tiny delay makes username probing harder to measure
 		time.Sleep(150 * time.Millisecond)
@@ -97,13 +97,13 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := bcrypt.CompareHashAndPassword(u.PasswordHash, []byte(password)); err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(password)); err != nil {
 		http.Error(w, "invalid credentials", http.StatusUnauthorized)
 		return
 	}
 
 	// Success: set session values.
-	sessionMgr.Put(r.Context(), "userID", u.ID)
+	sessionMgr.Put(r.Context(), "userID", int(u.ID))
 	sessionMgr.Put(r.Context(), "username", u.Username)
 
 	_, _ = w.Write([]byte("ok"))

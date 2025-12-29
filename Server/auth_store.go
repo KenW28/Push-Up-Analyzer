@@ -1,64 +1,70 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"sync"
+	"time"
 )
-
-// User is the minimal account record.
-// We store a bcrypt hash, NEVER the plaintext password.
-type User struct {
-	ID           int
-	Username     string
-	PasswordHash []byte
-}
-
-// UserStore is a simple in-memory store.
-// WARNING: data disappears when the server restarts.
-// Later we can swap this to a real DB with the same method signatures.
-type UserStore struct {
-	mu     sync.RWMutex
-	nextID int
-	byName map[string]User
-}
 
 var (
-	ErrUserExists   = errors.New("username already taken")
-	ErrUserNotFound = errors.New("user not found")
+	ErrUserNotFound  = errors.New("user not found")
+	ErrUsernameTaken = errors.New("username already taken")
 )
 
-func NewUserStore() *UserStore {
-	return &UserStore{
-		nextID: 1,
-		byName: make(map[string]User),
+type AuthUser struct {
+	ID           int64
+	Username     string
+	PasswordHash string
+	CreatedAt    time.Time
+}
+
+type AuthStore interface {
+	Create(ctx context.Context, username, passwordHash string) (AuthUser, error)
+	GetByUsername(ctx context.Context, username string) (AuthUser, error)
+}
+
+// ---- In-memory implementation (dev fallback) ----
+
+type MemoryAuthStore struct {
+	mu    sync.Mutex
+	next  int64
+	users map[string]AuthUser // keyed by username
+}
+
+func NewMemoryAuthStore() *MemoryAuthStore {
+	return &MemoryAuthStore{
+		next:  1,
+		users: make(map[string]AuthUser),
 	}
 }
 
-func (s *UserStore) Create(username string, passwordHash []byte) (User, error) {
+func (s *MemoryAuthStore) Create(ctx context.Context, username, passwordHash string) (AuthUser, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if _, exists := s.byName[username]; exists {
-		return User{}, ErrUserExists
+	if _, exists := s.users[username]; exists {
+		return AuthUser{}, ErrUsernameTaken
 	}
 
-	u := User{
-		ID:           s.nextID,
+	u := AuthUser{
+		ID:           s.next,
 		Username:     username,
 		PasswordHash: passwordHash,
+		CreatedAt:    time.Now().UTC(),
 	}
-	s.nextID++
-	s.byName[username] = u
+	s.next++
+	s.users[username] = u
 	return u, nil
 }
 
-func (s *UserStore) GetByUsername(username string) (User, error) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+func (s *MemoryAuthStore) GetByUsername(ctx context.Context, username string) (AuthUser, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
-	u, ok := s.byName[username]
+	u, ok := s.users[username]
 	if !ok {
-		return User{}, ErrUserNotFound
+		return AuthUser{}, ErrUserNotFound
 	}
 	return u, nil
 }

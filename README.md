@@ -11,31 +11,3 @@ go.mod - Tells Go this folder is a project
 
 handler_auth - 
 db.go - Where persistence long-term DB lives 
-
-*LOGIN INFO*
-
-Never store plaintext passwords
-
-Always store a bcrypt hash.
-
-HTTPS only in production
-
-If you use cookies for login sessions, sending them over HTTP is risky.
-
-Production should be https:// with Secure cookies.
-
-Use secure cookies
-
-HttpOnly (JS can’t steal it)
-
-SameSite=Lax (helps against CSRF)
-
-Secure=true in production
-
-Rate limit login
-
-Prevent brute force password guessing.
-
-Don’t leak whether a username exists
-
-For login errors, return a generic “invalid credentials”.
