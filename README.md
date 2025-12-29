@@ -12,7 +12,7 @@ go.mod - Tells Go this folder is a project
 handler_auth - 
 db.go - Where persistence long-term DB lives 
 
-LOGIN INFO* 
+*LOGIN INFO*
 
 Never store plaintext passwords
 
