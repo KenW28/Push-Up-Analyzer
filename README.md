@@ -1,13 +1,19 @@
 # Push-Up-Analyzer
-First attempt at a small personal passion project to gain experience in ML using MCUs. This project will use Arduino Nana 33 Sense REV2 and will hopefully be used to correctly capture the motion of push ups and properly count the repitions. 
+Early build of Pressle. A social push-ups application and hardware to track reps while showing a live leaderboard. This is the webpage and database development repo.
 
+## Project layout
+Frontend/
+- index.html main page layout
+- styles.css colors, fonts, spacing
+- app.js page behavior and API calls
 
-app.js - behavior and data wiring (what happens when you do xyz)
-index.html - Defines what is on the page (Titles, text, tables)
-styles.css - the look and layout (Colors, fonts, spacing)
+Server/
+- main.go server entry point
+- handlers_auth.go login and sessions
+- handlers_leaderboard.go leaderboard API
+- handlers_reps.go reps API
+- db.go database connection
+- migrations/ database tables
 
-Server
-go.mod - Tells Go this folder is a project 
-
-handler_auth - 
-db.go - Where persistence long-term DB lives 
+docs/
+- simple landing page for pressle.app
