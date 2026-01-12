@@ -1,9 +1,11 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"sort"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -39,46 +41,18 @@ func handleLeaderboard(w http.ResponseWriter, r *http.Request) {
 		windowKey = "month"
 	}
 
-	// Demo base data. Later this comes from persistence.
-	base := []struct {
-		Username string
-		BaseWeek int
-		IsFriend bool
-	}{
-		{"kendrick", 210, true},
-		{"alex", 180, true},
-		{"jordan", 145, false},
-		{"taylor", 120, true},
-		{"sam", 90, false},
+	rows, err := loadLeaderboardRows(r.Context(), windowKey)
+	if err != nil {
+		http.Error(w, "server error", http.StatusInternalServerError)
+		return
 	}
 
-	// Apply "friends only" filter if requested.
-	filtered := make([]struct {
-		Username string
-		BaseWeek int
-		IsFriend bool
-	}, 0, len(base))
-
-	for _, p := range base {
-		if scope == "friends" && !p.IsFriend {
-			continue
-		}
-		filtered = append(filtered, p)
-	}
-
-	// Map base data into leaderboard rows (username + computed reps)
-	rows := make([]LeaderboardRow, 0, len(filtered))
-	for _, p := range filtered {
-		rows = append(rows, LeaderboardRow{
-			Username:  p.Username,
-			TotalReps: computeRepsForWindow(p.BaseWeek, windowKey),
+	// Temporary: no friends model yet, so "friends" uses the same data.
+	if scope == "friends" {
+		sort.Slice(rows, func(i, j int) bool {
+			return rows[i].TotalReps > rows[j].TotalReps
 		})
 	}
-
-	// Sort descending by TotalReps
-	sort.Slice(rows, func(i, j int) bool {
-		return rows[i].TotalReps > rows[j].TotalReps
-	})
 
 	// Respond as JSON
 	w.Header().Set("Content-Type", "application/json")
@@ -89,25 +63,49 @@ func handleLeaderboard(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// computeRepsForWindow matches your frontend demo logic.
-// Later, you may move this logic to the DB query or keep it here.
-func computeRepsForWindow(baseWeek int, windowKey string) int {
+func loadLeaderboardRows(ctx context.Context, windowKey string) ([]LeaderboardRow, error) {
+	windowStart := leaderboardWindowStart(time.Now().UTC(), windowKey)
+
+	const q = `
+		SELECT u.username, COALESCE(SUM(rs.reps), 0) AS total_reps
+		FROM users u
+		LEFT JOIN rep_sessions rs
+		  ON rs.user_id = u.id
+		 AND rs.created_at >= $1
+		GROUP BY u.username
+		ORDER BY total_reps DESC, u.username ASC;
+	`
+
+	queryCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	rows, err := dbPool.Query(queryCtx, q, windowStart)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	results := make([]LeaderboardRow, 0)
+	for rows.Next() {
+		var row LeaderboardRow
+		if err := rows.Scan(&row.Username, &row.TotalReps); err != nil {
+			return nil, err
+		}
+		results = append(results, row)
+	}
+
+	return results, rows.Err()
+}
+
+func leaderboardWindowStart(now time.Time, windowKey string) time.Time {
 	switch windowKey {
-	case "month":
-		return baseWeek * 4
 	case "minute":
-		v := baseWeek / 200
-		if v < 1 {
-			return 1
-		}
-		return v
+		return now.Add(-1 * time.Minute)
 	case "30s":
-		v := baseWeek / 400
-		if v < 1 {
-			return 1
-		}
-		return v
+		return now.Add(-30 * time.Second)
+	case "month":
+		return now.AddDate(0, -1, 0)
 	default:
-		return baseWeek
+		return now.AddDate(0, -1, 0)
 	}
 }

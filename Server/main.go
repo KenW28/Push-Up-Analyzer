@@ -9,9 +9,11 @@ import (
 	"github.com/alexedwards/scs/v2"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 var store AuthStore
+var dbPool *pgxpool.Pool
 
 // sessionMgr handles secure session cookies.
 var sessionMgr = scs.New()
@@ -51,10 +53,10 @@ func main() {
 	// This prevents a request from hanging forever.
 	r.Use(middleware.Timeout(10 * time.Second))
 
-	db := openDB()
-	defer db.Close()
+	dbPool = openDB()
+	defer dbPool.Close()
 
-	store = NewPostgresAuthStore(db)
+	store = NewPostgresAuthStore(dbPool)
 
 	// --- API ROUTES ---
 	// We group all API endpoints under /api
@@ -65,6 +67,7 @@ func main() {
 		// Register route groups defined in other files.
 		RegisterAuthRoutes(api)
 		RegisterLeaderboardRoutes(api)
+		RegisterRepRoutes(api)
 	})
 
 	// --- STATIC FRONTEND FILES ---

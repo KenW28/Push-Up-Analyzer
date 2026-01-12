@@ -1,0 +1,40 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  min-height: 100vh;
+  background: #f5f0ea;
+  color: #201a18;
+}
+
+.wrap {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2rem;
+  text-align: center;
+}
+
+.logo {
+  width: 160px;
+  height: auto;
+  display: block;
+}
+
+a {
+  color: #7f1d1d;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
