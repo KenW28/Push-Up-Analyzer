@@ -1,1 +1,7 @@
 PromptProgress.txt
+# PlatformIO
+Hardware/.pio/
+Hardware/.vscode/c_cpp_properties.json
+Hardware/.vscode/launch.json
+Hardware/.vscode/ipch
+Hardware/.vscode/.browse.c_cpp.db*

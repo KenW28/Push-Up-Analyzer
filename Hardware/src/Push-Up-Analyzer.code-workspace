@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "../../../../../Passion Projects/Push-Up Competition/Push-Up-Analyzer"
+		},
+		{
+			"name": "Push_up Data",
+			"path": ".."
+		}
+	],
+	"settings": {
+		"git.ignoreLimitWarning": true
+	}
+}
