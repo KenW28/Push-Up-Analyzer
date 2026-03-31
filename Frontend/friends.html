@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Manage Friends • Pressle</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="styles.css" />
+  <script src="friends.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <h1 class="site-title">Friends List</h1>
+      <p class="site-tagline">Send and respond to friend requests for friends-only leaderboard mode.</p>
+    </div>
+  </header>
+
+  <main class="main friends-window-main">
+    <section class="card">
+      <header class="card-header">
+        <div>
+          <h2>Manage Friends</h2>
+          <p class="card-subtitle">Requests must be accepted before users become friends.</p>
+        </div>
+      </header>
+
+      <div class="friends-panel" aria-live="polite">
+        <form id="friends-form" class="friends-form">
+          <label class="control friends-input-wrap">
+            <span class="control-label">Send Request To Username</span>
+            <input
+              id="friend-username-input"
+              class="control-input"
+              type="text"
+              autocomplete="off"
+              placeholder="e.g. kendrick"
+              maxlength="32"
+            />
+          </label>
+          <button id="add-friend-btn" class="control-select" type="submit">Send Request</button>
+        </form>
+
+        <p id="friends-feedback" class="friends-feedback" hidden></p>
+
+        <section class="friends-section">
+          <h3 class="friends-section-title">Incoming Requests</h3>
+          <p id="incoming-empty-state" class="last-updated">No incoming requests.</p>
+          <div id="incoming-requests-list" class="friends-list-stack"></div>
+        </section>
+
+        <section class="friends-section">
+          <h3 class="friends-section-title">Outgoing Requests</h3>
+          <p id="outgoing-empty-state" class="last-updated">No outgoing requests.</p>
+          <div id="outgoing-requests-list" class="friends-list-stack"></div>
+        </section>
+
+        <section class="friends-section">
+          <h3 class="friends-section-title">Accepted Friends</h3>
+          <p id="friends-empty-state" class="last-updated">No friends added yet.</p>
+          <div id="friends-list" class="friends-list-stack"></div>
+        </section>
+      </div>
+
+      <div class="friends-window-actions">
+        <button id="close-window-btn" class="control-select" type="button">Done</button>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

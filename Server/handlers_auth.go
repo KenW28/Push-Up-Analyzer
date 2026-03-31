@@ -28,7 +28,14 @@ func RegisterAuthRoutes(r chi.Router) {
 
 // handleRegister creates a user account.
 // SAFETY: we hash passwords with bcrypt and never store plaintext.
+// SAFETY: rate limited to prevent spam account creation.
 func handleRegister(w http.ResponseWriter, r *http.Request) {
+	// Rate limit to prevent spam account creation.
+	if !loginLimiter.Allow(r) {
+		http.Error(w, "too many registration attempts, try again soon", http.StatusTooManyRequests)
+		return
+	}
+
 	var req authRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "invalid JSON", http.StatusBadRequest)

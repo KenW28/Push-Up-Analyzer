@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Profile • Pressle</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="styles.css" />
+  <script src="profile.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <h1 class="site-title">Profile</h1>
+      <p class="site-tagline">User information and profile actions.</p>
+    </div>
+  </header>
+
+  <main class="main profile-main">
+    <section class="card">
+      <header class="card-header">
+        <div>
+          <h2 id="profile-title">Profile</h2>
+          <p id="profile-subtitle" class="card-subtitle">Loading profile...</p>
+        </div>
+      </header>
+
+      <div class="profile-stats-grid" id="profile-stats-grid">
+        <div class="profile-stat">
+          <p class="profile-stat-label">Username</p>
+          <p class="profile-stat-value" id="profile-username">—</p>
+        </div>
+        <div class="profile-stat">
+          <p class="profile-stat-label">Member Since</p>
+          <p class="profile-stat-value" id="profile-created-at">—</p>
+        </div>
+        <div class="profile-stat">
+          <p class="profile-stat-label">Total Reps (All Time)</p>
+          <p class="profile-stat-value" id="profile-total-reps">—</p>
+        </div>
+        <div class="profile-stat">
+          <p class="profile-stat-label">Current Streak</p>
+          <p class="profile-stat-value" id="profile-streak">—</p>
+        </div>
+        <div class="profile-stat">
+          <p class="profile-stat-label">Friends Count</p>
+          <p class="profile-stat-value" id="profile-friends-count">—</p>
+        </div>
+        <div class="profile-stat">
+          <p class="profile-stat-label">Founder Badge</p>
+          <p class="profile-stat-value" id="profile-founder">—</p>
+        </div>
+      </div>
+
+      <p class="profile-note">
+        More profile details can be added here later (bio, devices, achievements, and history).
+      </p>
+
+      <p class="last-updated" id="profile-status">Loading profile...</p>
+
+      <div class="profile-actions">
+        <button id="delete-profile-btn" class="danger-btn" type="button" hidden>Delete Profile</button>
+        <button id="close-profile-btn" class="control-select" type="button">Close</button>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

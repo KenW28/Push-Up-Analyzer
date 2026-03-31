@@ -1,0 +1,6 @@
+session_id,segment_id,rep_index,start_s,end_s,duration_s,peak_depth_mm,num_windows
+session1,0,0,10.5,58.0,47.5,414.0,92
+session2,0,0,0.0,22.5,22.5,380.08,42
+session3,0,0,0.0,34.5,34.5,436.99,66
+session3,0,1,39.5,41.5,2.0,109.99,1
+session4,0,0,0.0,15.0,15.0,342.6,27

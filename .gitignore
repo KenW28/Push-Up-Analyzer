@@ -1,4 +1,7 @@
 PromptProgress.txt
+.env
+SECURITY_AUDIT.md
+SECURITY_FIXES_SUMMARY.md
 # PlatformIO
 Hardware/.pio/
 Hardware/.vscode/c_cpp_properties.json
